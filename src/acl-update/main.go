@@ -1,17 +1,17 @@
 package main
 
 import (
-	"flag"
-	"fmt"
-	"github.com/ghodss/yaml"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/apimachinery/pkg/util/json"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/tools/clientcmd"
 	"os"
-	"path/filepath"
+	"fmt"
+	"flag"
 	"strconv"
+	"path/filepath"
+	"github.com/ghodss/yaml"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/tools/clientcmd"
+	"k8s.io/apimachinery/pkg/util/json"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type patchObject struct {
@@ -138,8 +138,6 @@ func getCurrentList(clientconfig kubernetes.Clientset, serviceName string) []str
 }
 
 func patch(method string, clientconfig kubernetes.Clientset, resourceName string, cidr string) ([]byte, error) {
-
-	//cur := curJSON(clientconfig, resourceName)
 
 	cur := getCurrentList(clientconfig, resourceName)
 
