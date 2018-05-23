@@ -2,15 +2,15 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"github.com/ghodss/yaml"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/json"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 	"os"
 	"path/filepath"
-	"fmt"
-	"k8s.io/apimachinery/pkg/util/json"
-	"k8s.io/apimachinery/pkg/types"
 	"strconv"
 )
 
@@ -143,7 +143,6 @@ func patch(method string, clientconfig kubernetes.Clientset, resourceName string
 
 	cur := getCurrentList(clientconfig, resourceName)
 
-
 	var payload []patchObject
 	switch method {
 	case "add":
@@ -153,6 +152,10 @@ func patch(method string, clientconfig kubernetes.Clientset, resourceName string
 		element := SliceIndex(len(cur), func(i int) bool {
 			return cur[i] == cidr
 		})
+		if element == -1 {
+			fmt.Printf("Specified CIDR %s is not present on the service allowed list", cidr)
+			os.Exit(1)
+		}
 		payload = append(payload, patchObject{Op: "remove", Path: "/spec/loadBalancerSourceRanges/" + strconv.Itoa(element)})
 	}
 
@@ -161,13 +164,4 @@ func patch(method string, clientconfig kubernetes.Clientset, resourceName string
 	res, err := clientconfig.CoreV1().Services("default").Patch(resourceName, types.JSONPatchType, jsonload)
 	sourceRanges, _ := yaml.Marshal(res.Spec.LoadBalancerSourceRanges)
 	return sourceRanges, err
-}
-
-func SliceIndex(limit int, predicate func(i int) bool) int {
-	for i := 0; i < limit; i++ {
-		if predicate(i) {
-			return i
-		}
-	}
-	return -1
 }
