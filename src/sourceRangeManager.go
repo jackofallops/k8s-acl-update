@@ -8,11 +8,10 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	"os"
 	"path/filepath"
-	//"k8s.io/api/core/v1"
 	"fmt"
 	"k8s.io/apimachinery/pkg/util/json"
-	//jp "github.com/appscode/jsonpatch"
 	"k8s.io/apimachinery/pkg/types"
+	"strconv"
 )
 
 type patchObject struct {
@@ -28,12 +27,16 @@ func main() {
 	// commands
 	getCommand := flag.NewFlagSet("getOpts", flag.ExitOnError)
 	addCommand := flag.NewFlagSet("addOpts", flag.ExitOnError)
+	delCommand := flag.NewFlagSet("delOpts", flag.ExitOnError)
 
 	// subcommands
 	getServiceName := getCommand.String("service", "", "Resource name of the service to add to the new allowed IP range to")
 
 	addServiceName := addCommand.String("service", "", "Resource name of the service to add to the new allowed IP range to")
-	addNewIP := addCommand.String("new", "", "New CIDR to add to the allowed IP ranges for the service")
+	addNewIP := addCommand.String("cidr", "", "New CIDR to add to the allowed IP ranges for the service")
+
+	delServiceName := delCommand.String("service", "", "Resource name of the service to add to the new allowed IP range to")
+	delIP := delCommand.String("cidr", "", "CIDR to remove from the allowed IP ranges for the service")
 
 	//flags
 	if home := homeDir(); home != "" {
@@ -47,20 +50,15 @@ func main() {
 		os.Exit(1)
 	}
 
-	//newIP := flag.String("new", "", "New CIDR to add to the allowed IP ranges for the service")
 	flag.Parse()
-	//args := flag.Args()
-
-	//if len(args) < 1 {
-	//	panic("No operation method [get|set|add]")
-	//}
-	//println(string(*newIP))
 
 	switch os.Args[1] {
 	case "get":
 		getCommand.Parse(os.Args[2:])
 	case "add":
 		addCommand.Parse(os.Args[2:])
+	case "del":
+		delCommand.Parse(os.Args[2:])
 	default:
 		flag.PrintDefaults()
 		os.Exit(1)
@@ -76,8 +74,6 @@ func main() {
 		panic(err.Error())
 	}
 
-	// create the clientset
-	// use the current context in kubeconfig
 	if addCommand.Parsed() {
 		if *addServiceName == "" {
 			addCommand.PrintDefaults()
@@ -87,7 +83,24 @@ func main() {
 			addCommand.PrintDefaults()
 			os.Exit(1)
 		}
-		res, err := patch(*clientset, *addServiceName, *addNewIP)
+		res, err := patch("add", *clientset, *addServiceName, *addNewIP)
+		if err != nil {
+			fmt.Printf("%v", err)
+		}
+		println(string(res))
+
+	}
+
+	if delCommand.Parsed() {
+		if *delServiceName == "" {
+			delCommand.PrintDefaults()
+			os.Exit(1)
+		}
+		if *delIP == "" {
+			delCommand.PrintDefaults()
+			os.Exit(1)
+		}
+		res, err := patch("remove", *clientset, *delServiceName, *delIP)
 		if err != nil {
 			fmt.Printf("%v", err)
 		}
@@ -103,23 +116,6 @@ func main() {
 		println(string(getCurrent(*clientset, *getServiceName)))
 	}
 
-	//switch args[0] {
-	//case "get":
-	//	println(string("loadBalancerSourceRanges" + ""))
-	//	println(string(getCurrent(*clientset, myservice)))
-	//case "set":
-	//	setNew(getCurrent(*clientset, myservice), "127.0.0.1/32")
-	//	println(string("not implemented yet"))
-	//case "add":
-	//	println(string(*newIP))
-	//	if *newIP != "" {
-	//		patch(*clientset, myservice, *newIP)
-	//	}
-	//case "default":
-	//	println(string("Please supply method - [get|set]"))
-	//
-	//}
-
 }
 
 func homeDir() string {
@@ -132,27 +128,33 @@ func homeDir() string {
 func getCurrent(clientconfig kubernetes.Clientset, serviceName string) []byte {
 	res, _ := clientconfig.CoreV1().Services("default").Get(serviceName, metav1.GetOptions{})
 	sourceranges, _ := yaml.Marshal(res.Spec.LoadBalancerSourceRanges)
-	//println(string(sourcerangesNew))
 	return sourceranges
 
 }
 
-func curJSON(clientconfig kubernetes.Clientset, serviceName string) []byte {
+func getCurrentList(clientconfig kubernetes.Clientset, serviceName string) []string {
 	res, _ := clientconfig.CoreV1().Services("default").Get(serviceName, metav1.GetOptions{})
-	ret, _ := json.Marshal(res)
-	return ret
+	return res.Spec.LoadBalancerSourceRanges
 }
 
-func patch(clientconfig kubernetes.Clientset, resourceName string, newSource string) ([]byte, error) {
+func patch(method string, clientconfig kubernetes.Clientset, resourceName string, cidr string) ([]byte, error) {
 
 	//cur := curJSON(clientconfig, resourceName)
 
-	//TODO work out index to insert at end instead of top - to avoid rewriting NSG more than necessary
+	cur := getCurrentList(clientconfig, resourceName)
+
 
 	var payload []patchObject
+	switch method {
+	case "add":
+		payload = append(payload, patchObject{Op: "add", Path: "/spec/loadBalancerSourceRanges/" + strconv.Itoa(len(cur)), Value: cidr})
+	case "remove":
 
-	payload = append(payload, patchObject{Op:"add", Path: "/spec/loadBalancerSourceRanges/0", Value: newSource})
-
+		element := SliceIndex(len(cur), func(i int) bool {
+			return cur[i] == cidr
+		})
+		payload = append(payload, patchObject{Op: "remove", Path: "/spec/loadBalancerSourceRanges/" + strconv.Itoa(element)})
+	}
 
 	jsonload, _ := json.Marshal(payload)
 
@@ -161,7 +163,11 @@ func patch(clientconfig kubernetes.Clientset, resourceName string, newSource str
 	return sourceRanges, err
 }
 
-func setNew(cur []byte, newSource string) error {
-
-	return nil
+func SliceIndex(limit int, predicate func(i int) bool) int {
+	for i := 0; i < limit; i++ {
+		if predicate(i) {
+			return i
+		}
+	}
+	return -1
 }
