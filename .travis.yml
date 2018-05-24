@@ -1,0 +1,14 @@
+language: go
+
+go:
+- "1.10"
+
+install:
+- go get github.com/ghodss/yaml
+- go get k8s.io/client-go
+- go get k8s.io/apimachinery
+
+script:
+- export GOBIN=${PWD}/bin
+- cd src/acl-update
+- go install #will it build until I have time to figure out how to write some useful tests for this...

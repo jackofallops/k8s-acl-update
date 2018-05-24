@@ -1,17 +1,17 @@
 package main
 
 import (
-	"os"
-	"fmt"
 	"flag"
-	"strconv"
-	"path/filepath"
+	"fmt"
 	"github.com/ghodss/yaml"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/client-go/tools/clientcmd"
-	"k8s.io/apimachinery/pkg/util/json"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/json"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/tools/clientcmd"
+	"os"
+	"path/filepath"
+	"strconv"
 )
 
 type patchObject struct {
