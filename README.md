@@ -6,6 +6,13 @@ This section, on cloud providers, is used to configure firewall rules for the lo
 Tested on Azure
 Not tested on GCP / AWS 
 
+## Building
+Simply
+```bash
+go install
+```
+Then pop the binary from bin/ in your path... 
+
 ## Usage
 Retrieve the current list (returns yaml style array)
 ```bash
@@ -50,6 +57,9 @@ Example
 - 193.28.124.0/22
 - 193.38.192.0/19
 ```
+
+## Comments and requests
+Stick an issue in :)
 
 ## Future features
 - Some sort of reconcile option that will modify the list based on some known good list / source?
