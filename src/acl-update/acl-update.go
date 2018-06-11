@@ -144,9 +144,16 @@ func patch(method string, clientconfig kubernetes.Clientset, resourceName string
 	var payload []patchObject
 	switch method {
 	case "add":
+		element := SliceIndex(len(cur), func(i int) bool {
+			return cur[i] == cidr
+		})
+		if element != -1 {
+			fmt.Printf("Specified CIDR %s is already present on the service allowed list", cidr)
+			os.Exit(1)
+		}
 		payload = append(payload, patchObject{Op: "add", Path: "/spec/loadBalancerSourceRanges/" + strconv.Itoa(len(cur)), Value: cidr})
-	case "remove":
 
+	case "remove":
 		element := SliceIndex(len(cur), func(i int) bool {
 			return cur[i] == cidr
 		})
