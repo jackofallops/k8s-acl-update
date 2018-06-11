@@ -3,6 +3,10 @@
 This utility has been created as I have a need to update the list of CIDR values in the `loadBalancerSourceRanges:` section of service specs in Kubernetes.
 This section, on cloud providers, is used to configure firewall rules for the load balancers created by the service when the service is of `type: LoadBalancer`
 
+Basically we generate a simple JSONPatch and apply it with a little sanity checking around it.
+
+My use-case for this was needing to allow a bunch of dev and qa environments, that were recreated (complete infrastructure, no reserved IPs) daily to send logs to a Fluentd deployment in a K8s cluster in another Azure subscription.
+
 Tested on Azure
 Not tested on GCP / AWS 
 
