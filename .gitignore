@@ -15,4 +15,8 @@
 
 .idea/
 
+vendor/
+
 bin/*
+!build/.keepme
+build/**
