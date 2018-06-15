@@ -11,7 +11,13 @@ import (
 	"strconv"
 )
 
-func SliceIndex(limit int, predicate func(i int) bool) int {
+type patchObject struct {
+	Op    string      `json:"op"`
+	Path  string      `json:"path"`
+	Value interface{} `json:"value,omitempty"`
+}
+
+func sliceIndex(limit int, predicate func(i int) bool) int {
 	for i := 0; i < limit; i++ {
 		if predicate(i) {
 			return i
@@ -46,7 +52,7 @@ func patch(method string, clientconfig kubernetes.Clientset, resourceName string
 	var payload []patchObject
 	switch method {
 	case "add":
-		element := SliceIndex(len(cur), func(i int) bool {
+		element := sliceIndex(len(cur), func(i int) bool {
 			return cur[i] == cidr
 		})
 		if element != -1 {
@@ -56,7 +62,7 @@ func patch(method string, clientconfig kubernetes.Clientset, resourceName string
 		payload = append(payload, patchObject{Op: "add", Path: "/spec/loadBalancerSourceRanges/" + strconv.Itoa(len(cur)), Value: cidr})
 
 	case "remove":
-		element := SliceIndex(len(cur), func(i int) bool {
+		element := sliceIndex(len(cur), func(i int) bool {
 			return cur[i] == cidr
 		})
 		if element == -1 {

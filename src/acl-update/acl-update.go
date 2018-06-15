@@ -9,11 +9,6 @@ import (
 	"path/filepath"
 )
 
-type patchObject struct {
-	Op    string      `json:"op"`
-	Path  string      `json:"path"`
-	Value interface{} `json:"value,omitempty"`
-}
 
 func main() {
 	var kubeconfig *string
