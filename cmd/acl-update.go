@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/sjones-sot/k8s-acl-update/pkg/utils"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 	"os"
@@ -25,11 +26,11 @@ func main() {
 	addServiceName := addCommand.String("service", "", "Resource name of the service to add to the new allowed IP range to")
 	addNewIP := addCommand.String("cidr", "", "New CIDR to add to the allowed IP ranges for the service")
 
-	delServiceName := delCommand.String("service", "", "Resource name of the service to add to the new allowed IP range to")
+	delServiceName := delCommand.String("service", "", "Resource name of the service to delete to the IP range from")
 	delIP := delCommand.String("cidr", "", "CIDR to remove from the allowed IP ranges for the service")
 
 	//flags
-	if home := homeDir(); home != "" {
+	if home := utils.HomeDir(); home != "" {
 		kubeconfig = flag.String("kubeconfig", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
 	} else {
 		kubeconfig = flag.String("kubeconfig", "", "absolute path to the kubeconfig file")
@@ -73,7 +74,7 @@ func main() {
 			addCommand.PrintDefaults()
 			os.Exit(1)
 		}
-		res, err := patch("add", *clientset, *addServiceName, *addNewIP)
+		res, err := utils.Patch("add", *clientset, *addServiceName, *addNewIP)
 		if err != nil {
 			fmt.Printf("%v", err)
 		}
@@ -90,7 +91,7 @@ func main() {
 			delCommand.PrintDefaults()
 			os.Exit(1)
 		}
-		res, err := patch("remove", *clientset, *delServiceName, *delIP)
+		res, err := utils.Patch("remove", *clientset, *delServiceName, *delIP)
 		if err != nil {
 			fmt.Printf("%v", err)
 		}
@@ -103,7 +104,7 @@ func main() {
 			getCommand.PrintDefaults()
 			os.Exit(1)
 		}
-		println(string(getCurrent(*clientset, *getServiceName)))
+		println(string(utils.GetCurrent(*clientset, *getServiceName)))
 	}
 
 }
