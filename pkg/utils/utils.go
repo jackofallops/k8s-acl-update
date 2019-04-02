@@ -1,4 +1,4 @@
-package main
+package utils
 
 import (
 	"fmt"
@@ -26,14 +26,14 @@ func sliceIndex(limit int, predicate func(i int) bool) int {
 	return -1
 }
 
-func homeDir() string {
+func HomeDir() string {
 	if h := os.Getenv("HOME"); h != "" {
 		return h
 	}
 	return os.Getenv("USERPROFILE") // windows
 }
 
-func getCurrent(clientconfig kubernetes.Clientset, serviceName string) []byte {
+func GetCurrent(clientconfig kubernetes.Clientset, serviceName string) []byte {
 	res, _ := clientconfig.CoreV1().Services("default").Get(serviceName, metav1.GetOptions{})
 	sourceranges, _ := yaml.Marshal(res.Spec.LoadBalancerSourceRanges)
 	return sourceranges
@@ -45,7 +45,7 @@ func getCurrentList(clientconfig kubernetes.Clientset, serviceName string) []str
 	return res.Spec.LoadBalancerSourceRanges
 }
 
-func patch(method string, clientconfig kubernetes.Clientset, resourceName string, cidr string) ([]byte, error) {
+func Patch(method string, clientconfig kubernetes.Clientset, resourceName string, cidr string) ([]byte, error) {
 
 	cur := getCurrentList(clientconfig, resourceName)
 
