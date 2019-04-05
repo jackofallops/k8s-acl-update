@@ -42,12 +42,6 @@ func main() {
 
 	flag.Parse()
 
-	//var offset int
-
-	if flag.Parsed() {
-		fmt.Println("%v", kubeconfig)
-	}
-
 	switch os.Args[1] {
 	case "get":
 		getCommand.Parse(os.Args[2:])
