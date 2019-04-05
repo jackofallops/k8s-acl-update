@@ -26,7 +26,7 @@ func sliceIndex(limit int, predicate func(i int) bool) int {
 	return -1
 }
 
-// HomeDir retuns the calling user's home directory
+// HomeDir returns the calling user's home directory
 func HomeDir() string {
 	if h := os.Getenv("HOME"); h != "" {
 		return h
