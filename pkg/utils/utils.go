@@ -26,6 +26,7 @@ func sliceIndex(limit int, predicate func(i int) bool) int {
 	return -1
 }
 
+// HomeDir retuns the calling user's home directory
 func HomeDir() string {
 	if h := os.Getenv("HOME"); h != "" {
 		return h
@@ -33,6 +34,7 @@ func HomeDir() string {
 	return os.Getenv("USERPROFILE") // windows
 }
 
+// GetCurrent returns the CIDR list active in the specified service
 func GetCurrent(clientconfig kubernetes.Clientset, serviceName string) []byte {
 	res, _ := clientconfig.CoreV1().Services("default").Get(serviceName, metav1.GetOptions{})
 	sourceranges, _ := yaml.Marshal(res.Spec.LoadBalancerSourceRanges)
@@ -45,6 +47,7 @@ func getCurrentList(clientconfig kubernetes.Clientset, serviceName string) []str
 	return res.Spec.LoadBalancerSourceRanges
 }
 
+// Patch modifies the loadBalancerSourceRanges field on the service by patching the JSON object
 func Patch(method string, clientconfig kubernetes.Clientset, resourceName string, cidr string) ([]byte, error) {
 
 	cur := getCurrentList(clientconfig, resourceName)
