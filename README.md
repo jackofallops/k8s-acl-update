@@ -1,4 +1,6 @@
 # acl-update
+[![Go Report Card](https://goreportcard.com/badge/github.com/sjones-sot/k8s-acl-update)](https://goreportcard.com/report/github.com/sjones-sot/k8s-acl-update)
+
 ## About
 This utility has been created as I have a need to update the list of CIDR values in the `loadBalancerSourceRanges:` section of service specs in Kubernetes.
 This section, on cloud providers, is used to configure firewall rules for the load balancers created by the service when the service is of `type: LoadBalancer`
